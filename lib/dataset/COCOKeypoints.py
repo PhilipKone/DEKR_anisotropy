@@ -17,6 +17,7 @@ import torch
 
 import pycocotools
 from .COCODataset import CocoDataset
+from .anisotropic_heatmap_generator import AnisotropicHeatmapGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ class CocoKeypoints(CocoDataset):
         self.center_sigma = cfg.DATASET.CENTER_SIGMA
         self.bg_weight = cfg.DATASET.BG_WEIGHT
 
-        self.heatmap_generator = heatmap_generator
+        # Use anisotropic/oriented heatmap generator
+        self.heatmap_generator = AnisotropicHeatmapGenerator(cfg.DATASET.OUTPUT_SIZE, self.num_joints)
         self.offset_generator = offset_generator
         self.transforms = transforms
         
@@ -57,8 +59,29 @@ class CocoKeypoints(CocoDataset):
                 img, [mask], [joints], area
             )
 
+        # Calculate orientations for all people in the image
+        limb_pairs = [
+            (5, 7),  # left shoulder to left elbow
+            (7, 9),  # left elbow to left wrist
+            (6, 8),  # right shoulder to right elbow
+            (8, 10), # right elbow to right wrist
+            (11, 13),# left hip to left knee
+            (13, 15),# left knee to left ankle
+            (12, 14),# right hip to right knee
+            (14, 16) # right knee to right ankle
+        ]
+        num_people = joints_list[0].shape[0]
+        orientations = np.zeros((num_people, self.num_joints))
+        for p_idx, person in enumerate(joints_list[0]):
+            for start, end in limb_pairs:
+                x1, y1, v1 = person[start][:3]
+                x2, y2, v2 = person[end][:3]
+                if v1 > 0 and v2 > 0:
+                    theta = np.arctan2(y2 - y1, x2 - x1)
+                    orientations[p_idx, end] = theta
+
         heatmap, ignored = self.heatmap_generator(
-            joints_list[0], self.sigma, self.center_sigma, self.bg_weight)
+            joints_list[0], self.sigma, self.center_sigma, self.bg_weight, orientations=orientations)
         mask = mask_list[0]*ignored
 
         offset, offset_weight = self.offset_generator(
