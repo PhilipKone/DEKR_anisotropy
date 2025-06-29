@@ -21,7 +21,7 @@ import json_tricks as json
 import numpy as np
 from torch.utils.data import Dataset
 
-from crowdposetools.cocoeval import COCOeval
+# from crowdposetools.cocoeval import COCOeval
 from utils import zipreader
 from utils.rescore import CrowdRescoreEval
 
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 class CrowdPoseDataset(Dataset):
     def __init__(self, cfg, dataset):
-        from crowdposetools.coco import COCO
+        # from crowdposetools.coco import COCO
         self.root = cfg.DATASET.ROOT
         self.dataset = dataset
         self.data_format = cfg.DATASET.DATA_FORMAT
@@ -259,7 +259,7 @@ class CrowdPoseDataset(Dataset):
 
     def _do_python_keypoint_eval(self, res_file, res_folder):
         coco_dt = self.coco.loadRes(res_file)
-        coco_eval = COCOeval(self.coco, coco_dt, 'keypoints')
+        coco_eval = None  # COCOeval(self.coco, coco_dt, 'keypoints')
         coco_eval.params.useSegm = None
         coco_eval.evaluate()
         coco_eval.accumulate()

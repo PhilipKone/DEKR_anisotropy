@@ -15,7 +15,8 @@ from torch.autograd import Variable
 import pickle
 import models
 from pycocotools.cocoeval import COCOeval as COCOEval
-from crowdposetools.cocoeval import COCOeval as CrowdposeEval
+# Comment out crowdposetools imports for COCO-only evaluation
+# from crowdposetools.cocoeval import COCOeval as CrowdposeEval
 
 JOINT_COCO_LINK_1 = [0, 0, 1, 1, 2, 3, 4, 5, 5, 5, 6, 6, 7, 8, 11, 11, 12, 13, 14]
 JOINT_COCO_LINK_2 = [1, 2, 2, 3, 4, 5, 6, 6, 7, 11, 8, 12, 9, 10, 12, 13, 14, 15, 16]
